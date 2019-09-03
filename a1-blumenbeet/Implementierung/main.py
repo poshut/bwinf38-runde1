@@ -20,7 +20,7 @@ def farben_bestimmen(anzahl_farben, regeln):
     
     for farbe in FARBEN:
         if len(farben) >= anzahl_farben:
-            break;
+            break
         farben.add(farbe)
 
     return list(itertools.combinations(farben, anzahl_farben))

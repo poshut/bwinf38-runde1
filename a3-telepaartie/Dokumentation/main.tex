@@ -1,0 +1,125 @@
+\documentclass[a4paper,10pt,ngerman]{scrartcl}
+\usepackage{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8x]{inputenc}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{tikz}
+
+% Die nächsten drei Felder bitte anpassen:
+\newcommand{\Name}{Richard Wohlbold} % Teamname oder eigenen Namen angeben
+\newcommand{\Einsendenummer}{???}
+\newcommand{\Aufgabe}{Aufgabe 3: Telepaartie}
+
+% Kopf- und Fußzeilen
+\usepackage{scrlayer-scrpage}
+\setkomafont{pageheadfoot}{\textrm}
+\ifoot{\Name}
+\cfoot{\thepage}
+\chead{\Aufgabe}
+\ofoot{Einsendenummer: \Einsendenummer}
+
+% Für mathematische Befehle und Symbole
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+% Für Bilder
+\usepackage{graphicx}
+
+% Für Algorithmen
+\usepackage{algpseudocode}
+
+% Für Quelltext
+\usepackage{listings}
+\usepackage{color}
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\definecolor{mygray}{rgb}{0.5,0.5,0.5}
+\definecolor{mymauve}{rgb}{0.58,0,0.82}
+\lstset{
+  keywordstyle=\color{blue},commentstyle=\color{mygreen},
+  stringstyle=\color{mymauve},rulecolor=\color{black},
+  basicstyle=\footnotesize\ttfamily,numberstyle=\tiny\color{mygray},
+  captionpos=b, % sets the caption-position to bottom
+  keepspaces=true, % keeps spaces in text
+  numbers=left, numbersep=5pt, showspaces=false,showstringspaces=true,
+  showtabs=false, stepnumber=2, tabsize=2, title=\lstname
+}
+\lstdefinelanguage{JavaScript}{ % JavaScript ist als einzige Sprache noch nicht vordefiniert
+  keywords={break, case, catch, continue, debugger, default, delete, do, else, finally, for, function, if, in, instanceof, new, return, switch, this, throw, try, typeof, var, void, while, with},
+  morecomment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  morestring=[b]',
+  morestring=[b]",
+  sensitive=true
+}
+
+% Diese beiden Pakete müssen als letztes geladen werden
+%\usepackage{hyperref} % Anklickbare Links im Dokument
+\usepackage{cleveref}
+
+% Daten für die Titelseite
+\title{\Aufgabe}
+\author{\Name\\Einsendenummer: \Einsendenummer}
+\date{\today}
+
+
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\section{Lösungsidee}
+Die Zustände und Transformationen der Biberverteilungen können als gerichteter Graph dargestellt werden.
+Dabei repräsentiert ein Knoten im Graph eine Biberverteilung.
+Eine Kante von Knoten $K_1$ zu Knoten $K_2$ existiert, falls die Biberverteilung des Knotens $K_1$ mit dem \textit{Telepaarteur} in die Biberverteilung des Knotens $K_2$ umgewandelt werden kann.
+Die Anordnung der Füllmengen der Behälter ist egal, da sich die Anordnung $(x,y,z)$ genauso lösen lässt wie die Anordnung $(x,z,y)$.
+Somit repräsentiere ich die Füllmengen an einem Knoten als Menge von drei Zahlen.
+Enthält die Menge an einem Knoten den Wert 0, beträgt die Leerlauflänge 0.
+Ansonsten beträgt die Leerlauflänge die geringste Anzahl von Kanten zu einem Knoten, dessen Menge eine 0 enthält.
+
+Ein Beispielgraph ist in Abbildung \ref{fig:graph-idee} zu sehen.
+
+\begin{figure}
+\centering
+\begin{tikzpicture}
+    [auto=left,every node/.style={circle,fill=blue!20}]
+    \node (n1) at (0,4) {\{2,4,9\}};
+    \node (n2) at (-2,2) {\{4,4,7\}};
+    \node (n3) at (0,2) {\{1,2,8\}};
+    \node (n4) at (-2,0) {\{0,7,8\}};
+    \node (n5) at (0,0) {...};
+    \node (n6) at (2,2) {...};
+    \draw [->] (n1) -- (n2);
+    \draw [->] (n1) -- (n3);
+    \draw [->] (n2) -- (n4);
+    \draw [->] (n3) -- (n5);
+    \draw [->] (n1) -- (n6);
+\end{tikzpicture}
+\label{fig:graph-idee}
+\caption{Beispiel aus der Aufgabe, als Graph repräsentiert}
+\end{figure}
+
+Ein Aufgabenmerkmal ist, dass der eingeführte Graph gerichtete Zyklen enthalten kann, d.h. man kann über Telepaartie zum gleichen oder einem vorherigen Zustand gelangen.
+Ein Beispiel dafür ist die Biberverteilung ${2,4,4}$, die erneut durch Umfüllen zweier Biber in den Behälter, in dem sich zwei Biber befinden, erreicht werden kann.
+Diese Eigenschaft muss bei der Lösung der Aufgabe berücksichtigt werden.
+
+Um das Problem zu lösen und den kürzesten Weg zu einem Knoten zu finden, der eine $0$ enthält, wende ich eine \textit{Breadth-First-Search} an.
+Diese durchquert den Graphen gleichmäßig, indem stets der ununtersuchte Knoten untersucht wird, der den kürzesten Weg zum Wurzelknoten, also der Ausgangsverteilung, besitzt.
+Wird ein Knoten gefunden, der eine $0$ enthält, ist der Prozess beendet, denn man kann sich sicher sein, dass es keinen kürzeren Weg zu einem Knoten gibt, der eine $0$ enthält.
+
+Breadth-First-Search wird mit einer \textit{Queue}, also First-In-First-Out-Datenstruktur, umgesetzt.
+Wird ein Knoten untersucht, so wird überprüft, ob die Verteilung am zu untersuchenden Knoten eine 0 enthält. Ist dies der Fall, ist die Prozedur beendet.
+Ansonsten werden alle Knoten, zu denen Kanten vom untersuchten Knoten aus bestehen und die noch nicht untersucht wurden, ans Ende der Schlange gesetzt.
+Der erste zu untersuchende Knoten ist der Wurzelknoten (also die zu untersuchende Biberverteilung).
+Eine leere Menge wird anfangs initialisiert, der nach und nach alle untersuchten Knoten hinzugefügt werden.
+
+\section{Umsetzung}
+Hier wird kurz erläutert, wie die Lösungsidee im Programm tatsächlich umgesetzt wurde. Hier können auch Implementierungsdetails erwähnt werden.
+
+\section{Beispiele}
+Genügend Beispiele einbinden! Eigene Beispiele sind sehr gut! Und die Beispiele sollte diskutiert werden.
+
+\section{Quellcode (ausschnittsweise)}
+Unwichtige Teile des Programms müssen hier nicht abgedruckt werden.
+
+\end{document}

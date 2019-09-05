@@ -52,6 +52,20 @@
   sensitive=true
 }
 
+\lstset{literate=%
+    {Ö}{{\"O}}1
+    {Ä}{{\"A}}1
+    {Ü}{{\"U}}1
+    {ß}{{\ss}}1
+    {ü}{{\"u}}1
+    {ä}{{\"a}}1
+    {ö}{{\"o}}1
+    {~}{{\textasciitilde}}1
+    {“}{{"}}1
+    {„}{{"}}1
+}
+
+
 % Diese beiden Pakete müssen als letztes geladen werden
 %\usepackage{hyperref} % Anklickbare Links im Dokument
 \usepackage{cleveref}
@@ -114,12 +128,129 @@ Der erste zu untersuchende Knoten ist der Wurzelknoten (also die zu untersuchend
 Eine leere Menge wird anfangs initialisiert, der nach und nach alle untersuchten Knoten hinzugefügt werden.
 
 \section{Umsetzung}
-Hier wird kurz erläutert, wie die Lösungsidee im Programm tatsächlich umgesetzt wurde. Hier können auch Implementierungsdetails erwähnt werden.
+Das oben beschriebene Verfahren habe ich in Python 3 umgesetzt.
+Eine Biberverteilung repräsentiere ich als 3-Tupel, die aufsteigend sortiert sind.
+Zur Bestimmung der Leerlauflänge (LLL) habe ich die Funktion \texttt{lll} definiert, die als Argument die ursprüngliche Biberverteilung akzeptiert.
+Der Algorithmus verwendet die \texttt{Queue}-Datenstruktur aus der Python-Standardbibliothek, um die Breadth-First-Search umzusetzen.
+Diese enthält sowohl alle noch zu untersuchenden Biberverteilungen als auch die jeweilige Anzahl an Telepaartien, die benötigt wurden, um zur entsprechenden Verteilung zu gelangen.
+Zusätzlich wird ein \texttt{set} verwendet, das alle bereits untersuchten Verteilungen enthält, da es Elemente nur einmal enthalten kann und dabei gute Abrufzeiten bietet.
+In einer Schleife wird der Queue eine Verteilung und ihr Abstand zum Wurzelknoten entfernt und überprüft, ob das \texttt{set} sie schon enthält.
+Falls dies nicht der Fall ist, wird überprüft, ob die Verteilung eine 0 enthält, d.h. ob nur zwei Behälter gefüllt sind.
+In diesem Fall ist die Prozedur beendet.
+Falls dies nicht der Fall ist, werden alle Verteilungen, die sich mithilfe von Telepaartie aus der momentan untersuchten ergeben, der Queue hinzugefügt.
+Da die momentane Biberverteilung $(x,y,z)$ sortiert ist ($x\le y; y\le z$), gibt es nur drei Möglichkeiten:
+\begin{enumerate}
+  \item $(2x,y-x,z)$
+  \item $(2x,y,z-x)$
+  \item $(x,2y,z-y)$
+\end{enumerate}
+Diese werden der Queue, inklusive des um 1 erhöhten Abstandes, angehangen.
+
+Um die Funktion $L(n)$ zu bestimmen, iteriere ich durch alle möglichen Biberverteilungen mit $n$ Elementen und füge sie sortiert einem \texttt{set} hinzu.
+Für jede dieser Verteilungen rufe ich die Funktion $lll(n)$ auf und speichere den maximal zurückgegebenen Wert in einer Variablen und gebe sie zum Schluss aus.
+
+Das Programm wird entweder mit dem Parameter \texttt{l} oder \texttt{lll} aufgerufen.
+Falls die Funktion $L(n)$ ausgerechnet werden soll, muss der Parameter \texttt{l} mit der Zahl $n$ als weiteren Parameter.
 
 \section{Beispiele}
-Genügend Beispiele einbinden! Eigene Beispiele sind sehr gut! Und die Beispiele sollte diskutiert werden.
+\subsection{Allgemein}
+\subsubsection{Parameterfehler}
+Werden zu wenige Parameter angegeben, gibt das Programm Informationen zur Benutzung aus:
+\begin{lstlisting}
+[richard@planck ~/Programs/bwinf38]$ python a3-telepaartie/Implementierung/main.py
+Benutzung: a3-telepaartie/Implementierung/main.py <lll|l> <x,y,z|n>
+[richard@planck ~/Programs/bwinf38]$ 
+\end{lstlisting}
+
+\subsection{Berechnung der Leerlauflänge}
+\subsubsection{1. Verteilung aus der Aufgabe}
+Die Biberverteilung ${2,4,9}$ stammt aus der Aufgabe.
+In der Aufgabe wird eine LLL von 2 für die Verteilung angegeben, die das Programm bestätigt:
+\begin{lstlisting}
+[richard@planck ~/Programs/bwinf38]$ python a3-telepaartie/Implementierung/main.py lll 2 4 9
+2
+[richard@planck ~/Programs/bwinf38]$ 
+\end{lstlisting}
+
+\subsubsection{2. Verteilung aus der Aufgabe}.
+Die Biberverteilung $\{3,5,7\}$ stammt aus der Aufgabe
+In der Aufgabe wird angegeben, dass $LLL(\{3,5,7\}) > LLL(\{2,4,9\})$.
+Dies wird durch das Programm bestätigt:
+\begin{lstlisting}
+[richard@planck ~/Programs/bwinf38]$ python a3-telepaartie/Implementierung/main.py lll 3 5 7
+3
+[richard@planck ~/Programs/bwinf38]$ 
+\end{lstlisting}
+
+\subsubsection{Eigene Verteilung}
+Als eigene Verteilung verwende ich $\{1248, 573, 12499\}$.
+Das Programm findet fast direkt die Antwort:
+\begin{lstlisting}
+[richard@planck ~/Programs/bwinf38]$ python a3-telepaartie/Implementierung/main.py lll 1248 573 12499
+11
+[richard@planck ~/Programs/bwinf38]$ 
+\end{lstlisting}
+
+\subsubsection{Keine Zahl als Parameter}
+Wird für die Berechnung der Leerlauflänge keine Zahl für x, y oder z angegeben, gibt das Programm einen Fehler aus:
+\begin{lstlisting}
+[richard@planck ~/Programs/bwinf38]$ python a3-telepaartie/Implementierung/main.py lll 5 5 test
+Benutzung: a3-telepaartie/Implementierung/main.py <lll|l> <x,y,z|n>
+[richard@planck ~/Programs/bwinf38]$ 
+\end{lstlisting}
+
+\subsubsection{Negativer Parameter}
+Wird für die Berechnung der Leerlauflänge eine negative Zahl für x, y oder z angegeben, gibt das Programm einen Fehler aus:
+\begin{lstlisting}
+[richard@planck ~/Programs/bwinf38]$ python a3-telepaartie/Implementierung/main.py lll -1 5 7
+x, y oder z d\"urfen nicht negativ sein!
+[richard@planck ~/Programs/bwinf38]$
+\end{lstlisting}
+
+\subsection{Berechnung $L(n)$}
+\subsubsection{$L(10)$}
+Laut meinem Programm ist $L(10) = 2$:
+\begin{lstlisting}
+[richard@planck ~/Programs/bwinf38]$ python a3-telepaartie/Implementierung/main.py l 10
+2
+[richard@planck ~/Programs/bwinf38]$ 
+\end{lstlisting}
+
+\subsubsection{$L(100)$}
+Laut meinem Programm ist $L(100) = 7$:
+\begin{lstlisting}
+[richard@planck ~/Programs/bwinf38]$ python a3-telepaartie/Implementierung/main.py l 100
+7
+[richard@planck ~/Programs/bwinf38]$ 
+\end{lstlisting}
+  
+\subsubsection{Negativer Parameter}
+Wird bei der Berechnung von $L(n)$ ein negativer Parameter angegeben, gibt das Programm einen Fehler aus:
+\begin{lstlisting}
+[richard@planck ~/Programs/bwinf38]$ python a3-telepaartie/Implementierung/main.py l -1
+n darf nicht negativ sein!
+[richard@planck ~/Programs/bwinf38]$ 
+\end{lstlisting}
+
+\subsubsection{Keine Zahl als Parameter}
+Wird bei der Berechnung von $L(n)$ ein keine Zahl als Parameter angegeben, gibt das Programm einen Fehler aus:
+\begin{lstlisting}
+[richard@planck ~/Programs/bwinf38]$ python a3-telepaartie/Implementierung/main.py l test
+Benutzung: a3-telepaartie/Implementierung/main.py <lll|l> <x,y,z|n>
+[richard@planck ~/Programs/bwinf38]$ 
+\end{lstlisting}
+
 
 \section{Quellcode (ausschnittsweise)}
-Unwichtige Teile des Programms müssen hier nicht abgedruckt werden.
+Als erstes werden einige Pakete importiert:
+\lstinputlisting[language=Python]{imports.py}
+
+Danach wird die Funktion \texttt{lll} definiert:
+\lstinputlisting[language=Python]{lll.py}
+
+Danach wird die Funktion \texttt{l} definiert:
+\lstinputlisting[language=Python]{l.py}
+
+Der Code, der die Parameter einliest, die Funktionen aufruft und das Ergebnis ausgibt, wurde hier aufgrund seiner geringen Relevanz für die Lösung der Aufgabe ausgelassen.
 
 \end{document}

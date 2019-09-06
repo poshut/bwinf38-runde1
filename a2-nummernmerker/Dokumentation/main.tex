@@ -1,0 +1,185 @@
+\documentclass[a4paper,10pt,ngerman]{scrartcl}
+\usepackage{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8x]{inputenc}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+
+% Die nächsten drei Felder bitte anpassen:
+\newcommand{\Name}{Richard Wohlbold} % Teamname oder eigenen Namen angeben
+\newcommand{\Einsendenummer}{???}
+\newcommand{\Aufgabe}{Aufgabe 2: Nummernmerker}
+
+% Kopf- und Fußzeilen
+\usepackage{scrlayer-scrpage}
+\setkomafont{pageheadfoot}{\textrm}
+\ifoot{\Name}
+\cfoot{\thepage}
+\chead{\Aufgabe}
+\ofoot{Einsendenummer: \Einsendenummer}
+
+% Für mathematische Befehle und Symbole
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+% Für Bilder
+\usepackage{graphicx}
+
+% Für Algorithmen
+\usepackage{algpseudocode}
+
+% Für Quelltext
+\usepackage{listings}
+\usepackage{color}
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\definecolor{mygray}{rgb}{0.5,0.5,0.5}
+\definecolor{mymauve}{rgb}{0.58,0,0.82}
+\lstset{
+  keywordstyle=\color{blue},commentstyle=\color{mygreen},
+  stringstyle=\color{mymauve},rulecolor=\color{black},
+  basicstyle=\footnotesize\ttfamily,numberstyle=\tiny\color{mygray},
+  captionpos=b, % sets the caption-position to bottom
+  keepspaces=true, % keeps spaces in text
+  numbers=left, numbersep=5pt, showspaces=false,showstringspaces=true,
+  showtabs=false, stepnumber=2, tabsize=2, title=\lstname,
+  breaklines=true,
+  postbreak=\mbox{\textcolor{red}{$\hookrightarrow$}\space},
+}
+\lstdefinelanguage{JavaScript}{ % JavaScript ist als einzige Sprache noch nicht vordefiniert
+  keywords={break, case, catch, continue, debugger, default, delete, do, else, finally, for, function, if, in, instanceof, new, return, switch, this, throw, try, typeof, var, void, while, with},
+  morecomment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  morestring=[b]',
+  morestring=[b]",
+  sensitive=true
+}
+
+\lstset{literate=%
+    {Ö}{{\"O}}1
+    {Ä}{{\"A}}1
+    {Ü}{{\"U}}1
+    {ß}{{\ss}}1
+    {ü}{{\"u}}1
+    {ä}{{\"a}}1
+    {ö}{{\"o}}1
+    {~}{{\textasciitilde}}1
+    {“}{{"}}1
+    {„}{{"}}1
+}
+
+% Diese beiden Pakete müssen als letztes geladen werden
+%\usepackage{hyperref} % Anklickbare Links im Dokument
+\usepackage{cleveref}
+
+% Daten für die Titelseite
+\title{\Aufgabe}
+\author{\Name\\Einsendenummer: \Einsendenummer}
+\date{\today}
+
+
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\section{Lösungsidee}
+Das Problem kann rekursiv gelöst werden.
+Von einer Nummer können, bei ausreichender Länge, stets 2, 3 oder 4 Ziffern vom Anfang entfernt werden.
+Diese Ziffern können den ersten Block bilden, die restlichen Ziffern sind neue Nummern, auf die das Verfahren erneut angewendet werden kann.
+Um zu ermitteln, ob nun ein Block mit 2, 3 oder 4 Ziffern verwendet werden soll, wird die Anzahl von Blöcken, die mit 0 beginnen, für jede der drei Optionen verglichen und diejenige mit der geringsten Anzahl ausgewählt.
+Der Basisfall ist erreicht, falls die Länge der Nummer $\le 4$ ist:
+\begin{enumerate}
+    \item Ist die Länge der Nummer 4, so gibt es nur eine Möglichkeit: Die gesamte Nummer zu einem aus vier Ziffern bestehenden Block machen.
+    \item Ist die Länge der Nummer 3, so gibt es nur eine Möglichkeit: Die gesamte Nummer zu einem aus drei Ziffern bestehenden Block machen.
+    \item Ist die Länge der Nummer 2, so gibt es nur eine Möglichkeit: Die gesamte Nummer zu einem aus zwei Ziffern bestehenden Block machen.
+    \item Ist die Länge der Nummer 1, so ist es unmöglich, diese Nummer in Blöcke umzuwandeln. Dies muss der aufrufenden Prozedur signalisiert werden.
+\end{enumerate}
+
+Dieses Verfahren klingt zwar sehr aufwendig, da für $n$ Ziffern insgesamt $n^3$ Aufrufe entstehen würden (Komplexität von $\mathcal{O}(n^3)$), jedoch kann der Algorithmus, durch Implementierung eines Caches, deutlich effizienter gestaltet werden.
+Im Cache wird zu jeder Nummer die entsprechende optimale Blockaufteilung gespeichert.
+Somit wird für sie maximal für jede Ziffer einmal berechnet, sodass die Komplexität des Algorithmus zu $\mathcal{O}(n)$ wird.
+
+\section{Umsetzung}
+Den Algorithmus habe ich in Python 3 umgesetzt.
+Dazu definiere ich eine Funktion \texttt{loesen}, die als Parameter die in Blöcke einzuteilende Nummer als \texttt{str} annimmt.
+Zurück gibt sie die optimale Blockaufteilung sowie die Anzahl der Blöcke, die mit einer 0 beginnen.
+Zuerst schaut die Funktion in den Cache, einem \texttt{dict} ($\mathcal{O}(1)$ Zugriffszeit), und schaut, ob \texttt{solve} bereits für die Nummer aufgerufen wurde.
+Daraufhin überprüft die Funktion, ob sie überhaupt etwas tun kann, d.h. ob die Länge der Nummer nicht 0 oder 1 ist.
+Ist sie 0, so gibt die Funktion eine leere Liste an Blöcken, sowie die Zahl 0 für die Anzahl an mit 0 anfangenden Blöcken zurück.
+Ist sie 1, so gibt die Funktion eine leere Liste an Blöcken zurück, sowie die Zahl $\infty$ (\texttt{math.inf}), die zeigt, dass die Nummer nicht aufgeteilt werden konnte.
+Der Vorteil ist, dass beim Vergleich mehrerer Optionen die Nummer, die nicht aufgeteilt werden konnte, automatisch ignoriert wird, da alle anderen Aufteilungen weniger mit 0 beginnende Blöcke haben als sie.
+
+Nun kann die Funktion sich selbst aufrufen.
+Als erstes ruft sie sich mit derselben Nummer ohne ihre ersten beiden Ziffern auf und speichert die Blöcke sowie die Anzahl der Blöcke, die mit 0 anfängt.
+Falls die Nummer mindestens drei Ziffern enthält, ruft sie sich danach mit derselben Nummer ohne ihre ersten drei Ziffern auf, vergleicht die Ergebnisse und speichert das bessere, d.h. das mit weniger Blöcken, die mit 0 beginnen.
+Falls die Nummer mindestens vier Ziffern enthält, ruft sie sich danach mit derselben Nummer ohne ihre ersten vier Ziffern auf, vergleicht die Ergebnisse und speichert das bessere.
+Zum Schluss wird die Zahl an Blöcken, die mit 0 beginnen, um 1 erhöht, falls die Nummer mit 0 beginnt, die Ergebnisse werden in den Cache geschrieben und zurückgegeben.
+
+Die aufrufende Prozedur stellt sicher, dass nur numerische Nummern akzeptiert werden und behandelt den Fehler, dass $\infty$ Blöcke mit 0 beginnen.
+
+\section{Beispiele}
+\subsection{1. Beispiel von der Website}
+Dies ist das erste Beispiel von der \texttt{bwinf}-Website.
+Selbst ohne Programm ist es ersichtlich, dass mindestens zwei Blöcke mit 0 anfangen müssen, nämlich der erste und einer, der in der Mitte der langen Kette an 0en anfängt:
+\begin{lstlisting}
+$ python a2-nummernmerker/Implementierung/main.py 005480000005179734
+Die Blöcke, die sich Sarahs Mutter merken muss, sind: 0054, 8000, 0005, 1797, 34
+2 von 5 Blöcken fangen mit 0 an.
+$ 
+\end{lstlisting}
+
+\subsection{2. Beispiel von der Website}
+Hier ist es ersichtlich, dass nur der erste Block mit einer 0 beginnen muss.
+Das Programm bevorzugt längere Blöcke, solange nicht mehr Blöcke mit 0 beginnen, um die Anzahl der Blöcke für Sarahs Mutter zu reduzieren.
+
+\begin{lstlisting}
+$ python a2-nummernmerker/Implementierung/main.py 03495929533790154412660
+Die Blöcke, die sich Sarahs Mutter merken muss, sind: 0349, 5929, 5337, 9015, 4412, 660
+1 von 6 Blöcken fangen mit 0 an.
+$ 
+\end{lstlisting}
+
+\subsection{3. Beispiel von der Website}
+Die meisten Nummern brauchen keine Blöcke, die mit 0 anfangen.
+Auch bei langen Nummern braucht das Programm nur $0.037 s$.
+\begin{lstlisting}
+$ python a2-nummernmerker/Implementierung/main.py 5319974879022725607620179
+Die Blöcke, die sich Sarahs Mutter merken muss, sind: 5319, 9748, 7902, 2725, 6076, 201, 79
+0 von 7 Blöcken fangen mit 0 an.
+$ 
+\end{lstlisting}
+
+\subsection{4. Beispiel von der Website}
+\begin{lstlisting}
+$ python a2-nummernmerker/Implementierung/main.py 9088761051699482789038331267
+Die Blöcke, die sich Sarahs Mutter merken muss, sind: 9088, 7610, 5169, 9482, 7890, 3833, 1267
+0 von 7 Blöcken fangen mit 0 an.
+$ 
+\end{lstlisting}
+
+\subsection{5. Beispiel von der Website}
+Bei binären Nummern treten naturgemäß viele Blöcke auf, die mit 0 beginnen:
+\begin{lstlisting}
+$ python a2-nummernmerker/Implementierung/main.py 011000000011000100111111101011
+Die Blöcke, die sich Sarahs Mutter merken muss, sind: 0110, 0000, 001, 1000, 1001, 1111, 110, 1011
+3 von 8 Blöcken fangen mit 0 an.
+$ 
+\end{lstlisting}
+
+\subsection{Eine sehr lange Nummer}
+Auch sehr lange Nummern werden vom Programm aufgrund des Caches schnell ($0.048 \text{s}$) verarbeitet:
+\begin{lstlisting}
+$ python a2-nummernmerker/Implementierung/main.py 1283958210938509213850921850982309580932850912509218312735987215391235
+Die Blöcke, die sich Sarahs Mutter merken muss, sind: 1283, 9582, 1093, 8509, 2138, 5092, 1850, 982, 3095, 8093, 2850, 912, 5092, 1831, 2735, 9872, 1539, 1235
+0 von 18 Blöcken fangen mit 0 an.
+$ 
+\end{lstlisting}
+
+\section{Quellcode (ausschnittsweise)}
+Einige Module importieren und den Cache initialisieren:
+\lstinputlisting[language=Python]{imports.py}
+Die Funktion \texttt{solve}:
+\lstinputlisting[language=Python]{solve.py}
+Die Prozedur, die \texttt{solve} aufruft, wurde wegen ihrer geringen Relevanz für das zu lösende Problem hier ausgelassen.
+
+\end{document}

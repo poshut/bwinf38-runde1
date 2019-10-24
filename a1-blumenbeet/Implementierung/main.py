@@ -12,20 +12,33 @@ FARBEN = [
     'tuerkis'
 ]
 
-def farben_bestimmen(anzahl_farben, regeln):
+def grundfarben_bestimmen(anzahl_farben, regeln):
+    """
+    Bestimmt alle möglichen Mengen an Grundfarben, ausgehend von den gegebenen Regeln und der Anzahl der Farben in einer Grundfarbenmenge
+    @param anzahl_farben: Anzahl an Grundfarben pro Menge
+    """
+
+    # Welche Farben werden in den Regeln erwähnt?
     farben = set()
     for regel in regeln:
         farben.add(regel[0])
         farben.add(regel[1])
     
+    # Hinzufügen zusätzlicher Farben, um auf die geforderte Anzahl zu kommen
     for farbe in FARBEN:
         if len(farben) >= anzahl_farben:
             break
         farben.add(farbe)
 
+    # Wenn mehr Farben in den Regeln erscheinen als gefordert sind, sind alle Kombinationen an Farben aus den Regeln Grundfarbenmengen
     return itertools.combinations(farben, anzahl_farben)
 
 def aufstellung_bewerten(a, regeln):
+    """
+    Bewertet eine Aufstellung mit den gegebenen Regeln
+    @param a: Aufstellung als Liste an Farben
+    @param regeln: dict mit Tupeln zweier Farben als Schlüssel und der Punktzahl als Wert
+    """
     score = 0
     score += regeln.get((a[0],a[1]),0)
     score += regeln.get((a[0],a[2]),0)
@@ -45,21 +58,27 @@ def aufstellung_bewerten(a, regeln):
     score += regeln.get((a[7],a[8]),0)
     return score
 
-def alle_kombinationen(farben, anzahl_farben, regeln):
+def alle_kombinationen(grundfarben, anzahl_farben, regeln):
+    """
+    Bestimmt die beste Anordnung der gegebenen Grundfarben mit der gegebenen Anzahl an Farben und den gegebenen Regeln
+    @param grundfarben: Die Grundfarben, deren Anordnung bestimmt werden soll (als Liste)
+    @param anzahl_farben: Anzahl an verschiedenen Farben in der zu bestimmenden Anordnung
+    @param regeln: dict mit Tupeln zweier Farben als Schlüssel und der Punktzahl als Wert
+    """
     score = -math.inf
     comb = None
-    i = 0
-    for f in itertools.product(farben, repeat=9):
-        i += 1
-        if i % 1000000 == 0:
-            print("tried", str(i / 1000000) + "M", "permutations")
+    for f in itertools.product(grundfarben, repeat=9):
+
+        # Sind genürgend Farben in der Anordnung?
         if len(set(f)) < anzahl_farben:
             continue
+        
         s = aufstellung_bewerten(f, regeln)
         if s > score:
             comb = f
             score = s
     return comb, score
+
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
@@ -69,6 +88,7 @@ if __name__ == '__main__':
     with open(sys.argv[1]) as f:
         zeilen = f.read().split("\n")
     
+    # Anzahl der Farben und Regeln aus der Eingabedatei lesen
     anzahl_farben = int(zeilen[0])
     regeln = {}
     for zeile in zeilen[2:]:
@@ -79,10 +99,13 @@ if __name__ == '__main__':
 
     score = -math.inf
     comb = None
-    for farben in farben_bestimmen(anzahl_farben, regeln):
+
+    # Für jede Grundfarbenmenge die ideale Anordnung bestimmen und die beste verwenden
+    for farben in grundfarben_bestimmen(anzahl_farben, regeln):
         print("probing", farben)
         c, s = alle_kombinationen(farben, anzahl_farben, regeln)
         if s > score:
             score = s
             comb = c
+
     print(comb, score)

@@ -23,7 +23,7 @@ def farben_bestimmen(anzahl_farben, regeln):
             break
         farben.add(farbe)
 
-    return list(itertools.combinations(farben, anzahl_farben))
+    return itertools.combinations(farben, anzahl_farben)
 
 def aufstellung_bewerten(a, regeln):
     score = 0

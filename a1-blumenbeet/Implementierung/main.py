@@ -12,7 +12,7 @@ FARBEN = [
     'tuerkis'
 ]
 
-def grundfarben_bestimmen(anzahl_farben, regeln):
+def grundfarbenmengen_bestimmen(anzahl_farben, regeln):
     """
     Bestimmt alle möglichen Mengen an Grundfarben, ausgehend von den gegebenen Regeln und der Anzahl der Farben in einer Grundfarbenmenge
     @param anzahl_farben: Anzahl an Grundfarben pro Menge
@@ -101,7 +101,7 @@ if __name__ == '__main__':
     comb = None
 
     # Für jede Grundfarbenmenge die ideale Anordnung bestimmen und die beste verwenden
-    for farben in grundfarben_bestimmen(anzahl_farben, regeln):
+    for farben in grundfarbenmengen_bestimmen(anzahl_farben, regeln):
         print("probing", farben)
         c, s = alle_kombinationen(farben, anzahl_farben, regeln)
         if s > score:

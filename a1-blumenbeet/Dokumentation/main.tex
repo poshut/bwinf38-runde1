@@ -3,6 +3,7 @@
 \usepackage[T1]{fontenc}
 \usepackage[utf8x]{inputenc}
 \usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{todonotes}
 
 % Die nächsten drei Felder bitte anpassen:
 \newcommand{\Name}{Richard Wohlbold} % Teamname oder eigenen Namen angeben
@@ -87,6 +88,43 @@ Mein Ansatz, um die optimale Anordnung der Blumen zu finden, liegt darin, alle m
 Durch die nach oben begrenzte Anzahl an Farben und durch die feste Zahl an Blumenplätzen ist die Anzahl der möglichen Anordnungen für eine gegebene Farbmenge $M$ begrenzt.
 Die Anordnungen der Blumen sind dahingehend Permutationen mit Wiederholung, dass die Reihenfolge der Blumen relevant ist (die Punktzahl kann sich bei Veränderung der Reihenfolge verändern) und dass eine Farbe mehrmals eingesetzt werden kann.
 Im Unterschied zu regulären Permutationen muss jedoch jede Farbe einmal eingesetzt werden.
+
+Ich führe den Begriff der \textit{Grundfarbenmenge} ein, die eine Menge von Farben bezeichnet, aus deren Permutation sich mögliche Anordnungen von Farben ergeben.
+Die Anzahl an Elementen in möglichen Grundfarbenmengen $n$ wird durch den Kunden festgelegt und kann somit als gegeben angenommen werden.
+
+\subsection{Bestimmung der Grundfarbenmengen}
+Der erste Schritt meines Verfahrens ist das Bestimmen aller möglichen Grundfarbenmengen.
+Dabei gehe ich von den Regeln aus, indem ich eine Menge aller in den Regeln erwähnter Farben $R$ bilde.
+Da die Erfüllung einer Regel stets eine positive Anzahl von Bonuspunkten mit sich bringt, sollten in einer Grundfarbenmenge so viele in den Regeln erwähnten Farben vorkommen wie möglich.
+Dies kann man sich folgendermaßen vorstellen: Wird eine Farbe von Blumen, die in den Regeln erwähnt wird, durch eine andere Farbe erstetzt, die nicht vorkommt, können keinesfalls Punkte zum Ergebnis hinzukommen, entweder bleibt das Ergebnis gleich oder nimmt ab.
+
+Nun gibt es drei Möglichkeiten:
+\begin{enumerate}
+  \item $\textrm{len}(R) = n$. 
+  In diesem Fall ist $R$ die einzig sinnvolle Grundfarbenmenge.
+  \item $\textrm{len}(R) < n$. 
+  In diesem Fall werden $R$ so lange Farben hinzugefügt, die nicht in den Regeln erwähnt werden, bis $R$ $n$ Elemente hat. 
+  Da keine der nachträglich hinzufügbaren Farben Bonuspunkte erwirken kann, ist $R$ die einzige Grundfarbenmenge.
+  \item $\textrm{len}(R) > n$. 
+  In diesem Fall bildet jede Kombination ohne Wiederholung aus $n$ Elementen aus den Farben in $R$ eine Grundfarbenmenge.
+  Somit gibt es $ \binom{\textrm{len}(R)}{n}$ Grundfarbenmengen, wobei $0 \le \textrm{len}(R) \le 7$ und $1 \le n \le 7$. 
+  Somit gibt es maximal 35 Grundfarbenmengen ($\textrm{len}(R)=7$, $n=4$ oder $n=3$).
+\end{enumerate}
+
+\subsection{Bestimmung aller Permutationen}
+Ausgehend von einer Grundfarbenmenge $M$ und einer Anzahl an verschiedenen Farben $n$ können alle Permutationen folgendermaßen bestimmt werden:
+\begin{enumerate}
+  \item Man nimmt das kartesische Produkt von $M$ mit sich selbst 9 Mal.
+  \item Alle Produkte, die nicht mindestens $n$ verschiedene Farben enthalten, werden entfernt.
+\end{enumerate}
+
+Dadurch werden alle Permutationen mit Wiederholung, bei denen jede Farbe mindestens einmal vorkommt gefunden.
+Diese können dann im Folgenden mithilfe der Regeln bewertet werden, sodass die beste Permutation gefunden wird.
+
+Dieser Prozess wird für jede mögliche Grundfarbenmenge wiederholt.
+Die beste Permutation wird ausgewählt und stellt somit das Ergebnis des Verfahrens dar.
+
+
 
 \section{Umsetzung}
 

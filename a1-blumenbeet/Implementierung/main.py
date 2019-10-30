@@ -58,7 +58,7 @@ def aufstellung_bewerten(a, regeln):
     score += regeln.get((a[7],a[8]),0)
     return score
 
-def alle_kombinationen(grundfarben, anzahl_farben, regeln):
+def ideale_anordnung(grundfarben, anzahl_farben, regeln):
     """
     Bestimmt die beste Anordnung der gegebenen Grundfarben mit der gegebenen Anzahl an Farben und den gegebenen Regeln
     @param grundfarben: Die Grundfarben, deren Anordnung bestimmt werden soll (als Liste)
@@ -85,8 +85,13 @@ if __name__ == '__main__':
         print("Benutzung: " + sys.argv[0] + " <Eingabedatei>", file=sys.stderr)
         exit(1)
 
-    with open(sys.argv[1]) as f:
-        zeilen = f.read().split("\n")
+    try:
+        with open(sys.argv[1]) as f:
+            zeilen = f.read().split("\n")
+    except FileNotFoundError:
+        print("Eingabedatei nicht gefunden!", file=sys.stderr)
+        exit(1)
+
     
     # Anzahl der Farben und Regeln aus der Eingabedatei lesen
     anzahl_farben = int(zeilen[0])
@@ -102,10 +107,14 @@ if __name__ == '__main__':
 
     # Für jede Grundfarbenmenge die ideale Anordnung bestimmen und die beste verwenden
     for farben in grundfarbenmengen_bestimmen(anzahl_farben, regeln):
-        print("probing", farben)
-        c, s = alle_kombinationen(farben, anzahl_farben, regeln)
+        c, s = ideale_anordnung(farben, anzahl_farben, regeln)
         if s > score:
             score = s
             comb = c
 
-    print(comb, score)
+    print("1. Reihe:", comb[0])
+    print("2. Reihe:", ', '.join(comb[1:3]))
+    print("3. Reihe:", ', '.join(comb[3:6]))
+    print("4. Reihe:", ', '.join(comb[6:8]))
+    print("5. Reihe:", comb[8])
+    print("Diese Aufstellung erhält", score, "Punkte.")

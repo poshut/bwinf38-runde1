@@ -7,7 +7,7 @@
 
 % Die nächsten drei Felder bitte anpassen:
 \newcommand{\Name}{Richard Wohlbold} % Teamname oder eigenen Namen angeben
-\newcommand{\Einsendenummer}{???}
+\newcommand{\Einsendenummer}{00487}
 \newcommand{\Aufgabe}{Aufgabe 1: Blumenbeet}
 
 % Kopf- und Fußzeilen
@@ -16,7 +16,7 @@
 \ifoot{\Name}
 \cfoot{\thepage}
 \chead{\Aufgabe}
-\ofoot{Einsendenummer: \Einsendenummer}
+\ofoot{Team-ID: \Einsendenummer}
 
 % Für mathematische Befehle und Symbole
 \usepackage{amsmath}
@@ -73,7 +73,7 @@
 
 % Daten für die Titelseite
 \title{\Aufgabe}
-\author{\Name\\Einsendenummer: \Einsendenummer}
+\author{\Name\\Team-ID: \Einsendenummer}
 \date{\today}
 
 
@@ -84,6 +84,7 @@
 \tableofcontents
 
 \section{Lösungsidee}
+\label{sec:idea}
 Mein Ansatz, um die optimale Anordnung der Blumen zu finden, liegt darin, alle möglichen Anordnungen auszuprobieren und die Anordnung mit der höchsten Punktzahl zu benutzen.
 Durch die nach oben begrenzte Anzahl an Farben und durch die feste Zahl an Blumenplätzen ist die Anzahl der möglichen Anordnungen für eine gegebene Farbmenge $M$ begrenzt.
 Die Anordnungen der Blumen sind dahingehend Permutationen mit Wiederholung, dass die Reihenfolge der Blumen relevant ist (die Punktzahl kann sich bei Veränderung der Reihenfolge verändern) und dass eine Farbe mehrmals eingesetzt werden kann.
@@ -127,8 +128,333 @@ Die beste Permutation wird ausgewählt und stellt somit das Ergebnis des Verfahr
 
 
 \section{Umsetzung}
+Ich habe das oben beschriebene Verfahren in Python 3 mithilfe des Moduls \texttt{itertools} umgesetzt.
+
+Als erstes liest das Skript die Eingabedatei ein und speichert die Regeln in einem \texttt{dict} und die Anzahl der Farben in einer Variable.
+Dabei ist der Schlüssel ein Tupel aus zwei Farbnamen und der Wert die Anzahl an Bonuspunkten, die man bei Erfüllung der Regel erhält.
+Um die Bewertungslogik einfacher und schneller zu gestalten, speichere ich jede Regel doppelt, nämlich mit Wert $(A, B)$ und $(B, A)$, seien $A$ und $B$ zwei Farben aus einer Regel.
+
+Ich definiere eine Funktion namens \texttt{grundfarbenmengen\_bestimmen}, die mithilfe der ausgelesenen Regeln und der Anzahl der Farben alle möglichen Grundfarbenmengen bestimmt und zurückgibt.
+Wie oben beschrieben bestimmt sie die Menge der in den Regeln genannten Farben und fügt solange nicht erscheinende Farben hinzu, bis die geforderte Anzahl an Farben enthalten oder überschritten ist.
+Als letztes gibt sie alle Kombinationen der Farben der Länge \texttt{anzahl\_farben} zurück.
+
+Außerdem definiere ich eine Funktion \texttt{aufstellung\_bewerten}, die mithilfe der Regeln den Punktewert einer Aufstellung berechnet.
+Dabei repräsentiere ich eine Aufstellung als einen Tupel aus 9 Farben.
+Die Reihenfolge der Farben im Tupel entspricht der Reihenfolge der Farben in einer Aufstellung, wenn man die Farben nach rechts und nach unten abliest.
+Die Funktion prüft nun für jedes benachbarte Farbenpaar, ob eine Regel für diese Kombination existiert und addiert gegebenenfalls ihren Punktewert zu einer Summe hinzu und gibt diese zurück.
+
+Als letztes definiere ich eine Funktion \texttt{ideale\_anordnung}, die, ausgehend von einer Grundfarbenmenge, nach dem oben beschriebenen Prinzip, alle Permutationen der Länge 9 der Grundfarben bestimmt, in denen alle Farben mindestens einmal enthalten sind.
+Diese Permutationen werden jeweils mit \texttt{aufstellung\_bewerten} direkt bewertet und es wird die beste gespeichert.
+Diese wird mit ihrer Punktezahl zurückgegeben.
+
+Das Skript ruft nun für jede durch \texttt{grundfarbenmengen\_bestimmen} bestimmte Grundfarbenmenge \texttt{ideale\_anordnung} auf und bestimmt die ideale Anordnung über alle Grundfarbenmengen hinweg.
+
+Diese Anordnung wird schlussendlich mit ihrer Punktezahl ausgegeben.
+
+\subsection{Laufzeit}
+Die Laufzeit der Funktion \texttt{ideale\_anordnung} hängt von der Anzahl an Farben, die vom Kunden gefordert werden, ab:
+Je mehr Farben gefordert sind, desto länger braucht das Skript, um zu laufen.
+Als Illustration habe ich Tests erstellt, die unterschiedliche Anzahlen von Farben fordern und alle keine Regeln erhalten.
+Somit gibt es in allen Beispielen genau eine Grundfarbenmenge, die \texttt{ideale\_anordnung} gegeben wird.
+Die Laufzeiten werden in \ref{fig:laufzeit-alle-kombinationen} dargestellt.
+Die Laufzeiten sind quasi konstant, egal wie viele Regeln gegeben werden.
+
+\begin{figure}
+  \centering
+  \begin{tabular}{l|l}
+    $n$ (Anzahl der geforderten Farben) & Laufzeit \\ \hline
+    1 & 0.048s \\
+    2 & 0.051s \\
+    3 & 0.138s \\
+    4 & 0.823s \\
+    5 & 3.795s \\
+    6 & 12.065s \\
+    7 & 31.271s 
+  \end{tabular}
+  \caption{Laufzeit nach Anzahl der geforderten Farben ohne Regeln}
+  \label{fig:laufzeit-alle-kombinationen}
+\end{figure}
+
+Wie in Abschnitt \ref{sec:idea} beschrieben, gibt es bei $\textrm{len}(R) > n$ $\binom{\textrm{len}(R)}{n}$ Grundfarbenmengen.
+Für jede Grundfarbenmenge wird \texttt{ideale\_anordnung} einmal aufgerufen.
+Multipliziert man nun die in Abbildung \ref{fig:laufzeit-alle-kombinationen} gegebenen Laufzeiten mit $\binom{\textrm{len}(R)}{n}$, erhält man ungefähre Laufzeiten des Skripts mit Beispielen mit diesen Parametern.
+Um die maximale Laufzeit zu ermitteln, sollte $\textrm{len}(R)$ maximal sein, damit der Binomialkoeffizient maximal wird und damit $n$ erhöht werden kann.
+Dadurch ergeben sich ungefähre maximale Laufzeiten, die in Abbildung \ref{fig:laufzeiten-maximal} genannt sind.
+
+\begin{figure}
+  \centering
+  \begin{tabular}{l|l|l|l|l}
+   $\textrm{len}(R)$ & $n$ & $\binom{\textrm{len}(R)}{n}$ & Ungefähre Laufzeit & Reale Laufzeit \\ \hline
+   7 & 7 & 1 & $1 * 31.271s = 31.271s$ & $26.74s$ (siehe Beispiel \ref{sec:77}) \\
+   7 & 6 & 7 & $7 * 12.065s = 84.455s$ & $72.49s$ (siehe Beispiel \ref{sec:67}) \\
+   7 & 5 & 21 & $21 * 3.795s = 79.659s$ & $73.49s$ (siehe Beispiel \ref{sec:57}) \\
+   7 & 4 & 35 & $35 * 0.825s = 28.805s$ & $23.57s$ (siehe Beispiel \ref{sec:47}) \\
+  \end{tabular}
+  
+  \caption{Ungefähre maximale Laufzeiten und reale Laufzeiten des Skripts ausgehend von $n$ und $\textrm{len}(R)$. Reale Laufzeiten sind aufgrund der in der Realität nur einmal vorkommenden Vorbereitungszeit kürzer.}
+  \label{fig:laufzeiten-maximal}
+\end{figure}
+
+Somit ist die maximale Laufzeit des Skripts auf meinem Computer (Intel i5-5300U) ca. 1 Minute und 30 Sekunden, falls der Kunde Regeln mit allen 7 Farben angibt, aber nur 5 oder 6 fordert.
+Ein Praxistest mit einem solchen Beispiel bestätigt diesen Wert ungefähr.
+Alle anderen Anforderungen ergeben kürzere Laufzeiten (siehe Abschnitt \ref{sec:examples})
+
 
 \section{Beispiele}
+\label{sec:examples}
+
+\subsection{Beispiele von der \texttt{bwinf}-Website}
+
+\subsubsection{Beispiel 0}
+Die Eingabedatei:
+\lstinputlisting{../../material/a1-Blumenbeet/beispieldaten/blumen.txt}
+Ausgabe:
+\begin{lstlisting}
+$ time python main.py ../../material/a1-Blumenbeet/beispieldaten/blumen.txt 
+1. Reihe: orange
+2. Reihe: gelb, rosa
+3. Reihe: tuerkis, rot, blau
+4. Reihe: blau, rot
+5. Reihe: gruen
+Diese Aufstellung erhält 14 Punkte.
+
+real    0m27.566s
+user    0m27.235s
+sys     0m0.027s
+\end{lstlisting}
+
+\subsubsection{Beispiel 1}
+Die Eingabedatei:
+\lstinputlisting{../../material/a1-Blumenbeet/beispieldaten/blumen1.txt}
+Ausgabe:
+\begin{lstlisting}
+$ time python main.py ../../material/a1-Blumenbeet/beispieldaten/blumen1.txt 
+1. Reihe: rot
+2. Reihe: tuerkis, tuerkis
+3. Reihe: rot, rot, rot
+4. Reihe: tuerkis, tuerkis
+5. Reihe: rot
+Diese Aufstellung erhält 36 Punkte.
+
+real    0m0.051s
+user    0m0.044s
+sys     0m0.007s
+\end{lstlisting}
+
+\subsubsection{Beispiel 2}
+Die Eingabedatei:
+\lstinputlisting{../../material/a1-Blumenbeet/beispieldaten/blumen2.txt}
+Ausgabe:
+\begin{lstlisting}
+$ time python main.py ../../material/a1-Blumenbeet/beispieldaten/blumen2.txt 
+1. Reihe: gruen
+2. Reihe: rot, rot
+3. Reihe: tuerkis, tuerkis, tuerkis
+4. Reihe: rot, rot
+5. Reihe: tuerkis
+Diese Aufstellung erhält 32 Punkte.
+
+real    0m0.152s
+user    0m0.128s
+sys     0m0.023s
+\end{lstlisting}
+
+\subsubsection{Beispiel 3}
+Die Eingabedatei:
+\lstinputlisting{../../material/a1-Blumenbeet/beispieldaten/blumen3.txt}
+Ausgabe:
+\begin{lstlisting}
+$ time python main.py ../../material/a1-Blumenbeet/beispieldaten/blumen3.txt 
+1. Reihe: gelb
+2. Reihe: orange, rot
+3. Reihe: blau, tuerkis, tuerkis
+4. Reihe: rosa, rot
+5. Reihe: gruen
+Diese Aufstellung erhält 13 Punkte.
+
+real    0m25.768s
+user    0m25.585s
+sys     0m0.027s
+\end{lstlisting}
+
+
+\subsubsection{Beispiel 4}
+Die Eingabedatei:
+\lstinputlisting{../../material/a1-Blumenbeet/beispieldaten/blumen4.txt}
+Ausgabe:
+\begin{lstlisting}
+$ time python main.py ../../material/a1-Blumenbeet/beispieldaten/blumen4.txt 
+1. Reihe: blau
+2. Reihe: rosa, rosa
+3. Reihe: rot, rot, gruen
+4. Reihe: tuerkis, orange
+5. Reihe: gelb
+Diese Aufstellung erhält 22 Punkte.
+
+real    0m26.296s
+user    0m26.191s
+sys     0m0.014s
+\end{lstlisting}
+
+
+\subsubsection{Beispiel 5}
+Die Eingabedatei:
+\lstinputlisting{../../material/a1-Blumenbeet/beispieldaten/blumen5.txt}
+Ausgabe:
+\begin{lstlisting}
+$ time python main.py ../../material/a1-Blumenbeet/beispieldaten/blumen5.txt 
+1. Reihe: gruen
+2. Reihe: rot, orange
+3. Reihe: tuerkis, tuerkis, gelb
+4. Reihe: rot, blau
+5. Reihe: rosa
+Diese Aufstellung erhält 22 Punkte.
+
+real    0m28.637s
+user    0m28.225s
+sys     0m0.059s
+\end{lstlisting}
+
+\subsection{Eigene Beispiele}
+\subsubsection{Keine Eingabedatei}
+Ausgabe:
+\begin{lstlisting}
+$ python main.py 
+Benutzung: main.py <Eingabedatei>
+\end{lstlisting}
+
+\subsubsection{Keine Regeln, eine Farbe}
+Die Eingabedatei:
+\lstinputlisting{../Implementierung/322.txt}
+
+Die Ausgabe:
+\begin{lstlisting}
+$ time python main.py 322.txt 
+1. Reihe: blau
+2. Reihe: blau, blau
+3. Reihe: blau, blau, blau
+4. Reihe: blau, blau
+5. Reihe: blau
+Diese Aufstellung erhält 0 Punkte.
+
+real    0m0.046s
+user    0m0.042s
+sys     0m0.003s
+\end{lstlisting}
+
+\subsubsection{Keine Regeln, sieben Farben}
+Die Eingabedatei:
+\lstinputlisting{../Implementierung/323.txt}
+
+Die Ausgabe:
+\begin{lstlisting}
+$ time python main.py 323.txt 
+1. Reihe: gruen
+2. Reihe: gruen, gruen
+3. Reihe: gelb, rosa, blau
+4. Reihe: rot, tuerkis
+5. Reihe: orange
+Diese Aufstellung erhält 0 Punkte.
+
+real    0m24.914s
+user    0m24.848s
+sys     0m0.007s
+\end{lstlisting}
+
+\subsubsection{$n=4, \textrm{len}(R)=7$}
+\label{sec:47}
+Die Eingabedatei:
+\lstinputlisting{../Implementierung/324.txt}
+
+Die Ausgabe:
+\begin{lstlisting}
+$ time python main.py 324.txt 
+1. Reihe: orange
+2. Reihe: rot, rot
+3. Reihe: tuerkis, tuerkis, tuerkis
+4. Reihe: rot, rot
+5. Reihe: rosa
+Diese Aufstellung erhält 10 Punkte.
+
+real    0m23.750s
+user    0m23.707s
+sys     0m0.011s
+\end{lstlisting}
+
+\subsubsection{$n=5, \textrm{len}(R)=7$}
+\label{sec:57}
+Die Eingabedatei:
+\lstinputlisting{../Implementierung/325.txt}
+
+Die Ausgabe:
+\begin{lstlisting}
+$ time python main.py 325.txt 
+1. Reihe: gelb
+2. Reihe: rosa, rot
+3. Reihe: rot, rosa, rosa
+4. Reihe: tuerkis, rot
+5. Reihe: orange
+Diese Aufstellung erhält 9 Punkte.
+
+real    1m13.490s
+user    1m13.136s
+sys     0m0.020s
+\end{lstlisting}
+
+\subsubsection{$n=6, \textrm{len}(R)=7$}
+\label{sec:67}
+Die Eingabedatei:
+\lstinputlisting{../Implementierung/326.txt}
+
+Die Ausgabe:
+\begin{lstlisting}
+$ time python main.py 326.txt 
+1. Reihe: rosa
+2. Reihe: rot, rot
+3. Reihe: rosa, tuerkis, gruen
+4. Reihe: rot, orange
+5. Reihe: gelb
+Diese Aufstellung erhält 8 Punkte.
+
+real    1m12.491s
+user    1m12.303s
+sys     0m0.023s
+\end{lstlisting}
+
+\subsubsection{$n=7, \textrm{len}(R)=7$}
+\label{sec:77}
+Die Eingabedatei:
+\lstinputlisting{../Implementierung/327.txt}
+
+Die Ausgabe:
+\begin{lstlisting}
+$ time python main.py 327.txt 
+1. Reihe: gruen
+2. Reihe: rot, orange
+3. Reihe: rosa, rosa, blau
+4. Reihe: rot, gelb
+5. Reihe: tuerkis
+Diese Aufstellung erhält 7 Punkte.
+
+real    0m26.736s
+user    0m26.352s
+sys     0m0.070s
+\end{lstlisting}
 
 \section{Quellcode (ausschnittsweise)}
+Zuerst einige Imports und die Definition der möglichen Farben:
+\lstinputlisting[language=Python]{imports.py}
+
+Definition der Funktion \texttt{grundfarbenmengen\_bestimmen}:
+\lstinputlisting[language=Python]{grundfarbenmengen_bestimmen.py}
+
+Definition der Funktion \texttt{aufstellung\_bewerten}:
+\lstinputlisting[language=Python]{aufstellung_bewerten.py}
+
+Definition der Funktion \texttt{ideale\_anordnung}:
+\lstinputlisting[language=Python]{ideale_anordnung.py}
+
+Auswerten der Eingabedatei und Aufruf aller Funktionen:
+\lstinputlisting[language=Python]{main.py}
+
 \end{document}

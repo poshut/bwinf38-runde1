@@ -164,7 +164,7 @@ Benutzung: a3-telepaartie/Implementierung/main.py <lll|l> <x,y,z|n>
 
 \subsection{Berechnung der Leerlauflänge}
 \subsubsection{1. Verteilung aus der Aufgabe}
-Die Biberverteilung ${2,4,9}$ stammt aus der Aufgabe.
+Die Biberverteilung $\{2,4,9\}$ stammt aus der Aufgabe.
 In der Aufgabe wird eine LLL von 2 für die Verteilung angegeben, die das Programm bestätigt:
 \begin{lstlisting}
 [richard@planck ~/Programs/bwinf38]$ python a3-telepaartie/Implementierung/main.py lll 2 4 9
@@ -182,11 +182,21 @@ Dies wird durch das Programm bestätigt:
 [richard@planck ~/Programs/bwinf38]$ 
 \end{lstlisting}
 
+\subsubsection{Beispiel von der bwinf-Website}
+Die Biberverteilung $\{80,64,32\}$ stammt aus dem Beispielmaterial.
+Das Programm gibt eine Leerlauflänge von 2 zurück.
+Dies ist sinnvoll, da man von $\{80,64,32\}$ auf $\{48,64,64\}$ und somit auf $\{48,128,0\}$ kommt.
+\begin{lstlisting}
+[richard@planck ~/Programs/bwinf38/a3-telepaartie/Implementierung]$ python main.py lll 80 64 32
+2
+[richard@planck ~/Programs/bwinf38/a3-telepaartie/Implementierung]$ 
+\end{lstlisting}
+
 \subsubsection{Eigene Verteilung}
 Als eigene Verteilung verwende ich $\{1248, 573, 12499\}$.
 Das Programm findet fast direkt die Antwort:
 \begin{lstlisting}
-[richard@planck ~/Programs/bwinf38]$ python a3-telepaartie/Implementierung/main.py lll 1248 573 12499
+$ python a3-telepaartie/Implementierung/main.py lll 1248 573 12499
 11
 [richard@planck ~/Programs/bwinf38]$ 
 \end{lstlisting}
